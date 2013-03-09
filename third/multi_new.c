@@ -55,6 +55,8 @@ void text_results(Analysis *a) {
   printf("Numbers total: %d\n", a->total);
   printf("Numbers mean: %.2f\n", get_mean(a));
   printf("Numbers standard deviation: %.2f\n", get_standard_deviation(a));
+
+  printf("\n");
 }
 
 void histogram_results(Analysis *a) {
@@ -117,7 +119,9 @@ int main(int argc, char const *argv[])
   read_values(a);
 
   text_results(a);
-  /* histogram_results(a); */
+  histogram_results(a);
+
+  free(a);
 
   return 0;
 }
