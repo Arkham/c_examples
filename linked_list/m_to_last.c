@@ -100,10 +100,7 @@ bool m_to_last(node_t *head, int m_counter, node_t **found) {
     current = current->next;
   }
 
-  if (synced)
-    return true;
-  else
-    return false;
+  return synced;
 }
 
 int main(int argc, char *argv[]) {
