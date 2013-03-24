@@ -61,7 +61,7 @@ void printIndent(int indent) {
     printf(" ");
 }
 
-void traverseNext(Element *head, int indent) {
+void traverseNext(Element *head, int indent, bool include_child) {
   Element *current = head;
 
   if (!head) return;
@@ -73,11 +73,19 @@ void traverseNext(Element *head, int indent) {
     printIndent(indent);
     printf("Value is %d\n", current->value);
 
-    if (current->child)
-      traverseNext(current->child, indent+2);
+    if (include_child && current->child)
+      traverseNext(current->child, indent+2, include_child);
 
     current = current->next;
   }
+}
+
+void traverseDeep(Element *head) {
+  traverseNext(head, 0, true);
+}
+
+void traverseSimple(Element *head) {
+  traverseNext(head, 0, false);
 }
 
 bool insertAfter(Element **head, int value) {
@@ -114,15 +122,13 @@ List * createList() {
 
   return new;
 }
-
 /* }}} */
 
-void appendList(List **list, Element **head) {
-  Element *current, *tail;
+/* flattening {{{ */
+void appendList(List **list, Element *head) {
+  Element *current = head, *tail;
 
-  if (!list || !*list || !head || !*head) return;
-
-  current = *head;
+  if (!list || !*list || !head) return;
   tail = (*list)->tail;
 
   while (current) {
@@ -133,8 +139,6 @@ void appendList(List **list, Element **head) {
     (*list)->tail = current;
     current = current->next;
   }
-
-  *head = NULL;
 }
 
 void flattenList(List **list) {
@@ -145,10 +149,22 @@ void flattenList(List **list) {
   current = (*list)->head;
   while (current) {
     if (current->child)
-      appendList(list, &(current->child));
+      appendList(list, current->child);
     current = current->next;
   }
 }
+/* }}} */
+
+/* unflattening {{{ */
+void unflattenList(List **list) {
+  Element *current;
+
+  if (!list || !*list) return;
+
+  current = (*list)->head;
+
+}
+/* }}} */
 
 int main(int argc, char *argv[]) {
   List *list;
@@ -159,18 +175,18 @@ int main(int argc, char *argv[]) {
 
   for (i = 0; i < 3; ++i)
     insertElement(&list, i);
-  traverseNext(list->head, 0);
+  traverseDeep(list->head);
 
   for (i = 5; i < 8; ++i)
     insertAfter(&(list->head->child), i);
-  traverseNext(list->head, 0);
+  traverseDeep(list->head);
 
   for (i = 10; i < 14; ++i)
     insertAfter(&(list->tail->child), i);
-  traverseNext(list->head, 0);
+  traverseDeep(list->head);
 
   flattenList(&list);
-  traverseNext(list->head, 0);
+  traverseSimple(list->head);
 
   return EXIT_SUCCESS;
 }
