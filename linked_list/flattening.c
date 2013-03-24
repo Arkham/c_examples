@@ -132,13 +132,14 @@ void appendList(List **list, Element *head) {
   tail = (*list)->tail;
 
   while (current) {
-    if (tail) {
-      (*list)->tail->next = current;
-    }
+    current->prev = tail;
+    tail->next = current;
+    tail = current;
 
-    (*list)->tail = current;
     current = current->next;
   }
+
+  (*list)->tail = tail;
 }
 
 void flattenList(List **list) {
@@ -156,13 +157,31 @@ void flattenList(List **list) {
 /* }}} */
 
 /* unflattening {{{ */
+void breakList(Element *head) {
+  Element *current = head;
+
+  if (!head) return;
+
+  while (current) {
+    if (current->child) {
+      /* break off list */
+      current->child->prev->next = NULL;
+      breakList(current->child);
+    }
+    current = current->next;
+  }
+}
+
 void unflattenList(List **list) {
   Element *current;
 
   if (!list || !*list) return;
-
   current = (*list)->head;
 
+  breakList(current);
+
+  while (current->next) { current = current->next; }
+  (*list)->tail = current;
 }
 /* }}} */
 
@@ -186,7 +205,10 @@ int main(int argc, char *argv[]) {
   traverseDeep(list->head);
 
   flattenList(&list);
-  traverseSimple(list->head);
+  traverseDeep(list->head);
+
+  unflattenList(&list);
+  traverseDeep(list->head);
 
   return EXIT_SUCCESS;
 }
