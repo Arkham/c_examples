@@ -131,14 +131,41 @@ void imperative_preorder(Node *root) {
   }
 }
 
+int lowest_common_ancestor(Node *root, int first, int second) {
+  int value;
+
+  if (first > second) {
+    value = first;
+    first = second;
+    second = value;
+  }
+
+
+  while (root) {
+    value = root->value;
+
+    if (value > first && value < second)
+      return value;
+
+    if (value < first && value < second)
+      root = root->right;
+
+    if (value > first && value > second)
+      root = root->left;
+  }
+
+  return -1;
+}
+
 int main(int argc, char *argv[]) {
   Node *root;
 
-  insert(&root, 5);
-  insert(&root, 1);
-  insert(&root, 10);
-  insert(&root, 6);
+  insert(&root, 20);
+  insert(&root, 8);
+  insert(&root, 22);
+  insert(&root, 4);
   insert(&root, 12);
+  insert(&root, 10);
   insert(&root, 14);
 
   preorder(root);
@@ -151,6 +178,8 @@ int main(int argc, char *argv[]) {
   printf("Tree height: %d\n", height(root));
 
   imperative_preorder(root);
+
+  printf("LCA of 4 and 14 is: %d\n", lowest_common_ancestor(root, 4, 14));
 
   return EXIT_SUCCESS;
 }
