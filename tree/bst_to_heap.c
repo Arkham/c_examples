@@ -6,9 +6,10 @@ typedef struct Node {
   struct Node *left;
   struct Node *right;
   int value;
+  int visited;
 } Node;
 
-Node *createElement(int value) {
+Node *createNode(int value) {
   Node *new;
 
   new = malloc(sizeof(Node));
@@ -16,6 +17,7 @@ Node *createElement(int value) {
 
   new->left = NULL;
   new->right = NULL;
+  new->visited = -1;
   new->value = value;
   return new;
 }
@@ -44,7 +46,7 @@ void insertValue(Node **root, int value) {
 
   if (!root) return;
 
-  new = createElement(value);
+  new = createNode(value);
   if (!new) return;
 
   insert(root, new);
@@ -133,6 +135,86 @@ void treefyHeap(Node **heap, int length, Node **root) {
   }
 }
 
+int countNodes(Node *root) {
+  if (!root) return 0;
+  return 1 + countNodes(root->left) + countNodes(root->right);
+}
+
+typedef struct Element {
+  struct Element *next;
+  Node *elem;
+} Element;
+
+Element * createElement(Node *elem) {
+  Element *new;
+
+  new = malloc(sizeof(Element));
+  if (!new) return NULL;
+
+  new->next = NULL;
+  new->elem = elem;
+  return new;
+}
+
+bool insertQueue(Element **queue, Node *elem) {
+  Element *current, *new;
+
+  if (!queue) return false;
+
+  new = createElement(elem);
+  if (!new) return false;
+
+  if (!*queue) {
+    *queue = new;
+    return true;
+  }
+
+  current = *queue;
+  while (current->next) { current = current->next; }
+  current->next = new;
+
+  return true;
+}
+
+Element * extractFirst(Element **queue) {
+  Element *current;
+
+  if (!queue || !*queue) return NULL;
+
+  current = *queue;
+  *queue = (*queue)->next;
+  return current;
+}
+
+void BFS(Node *root) {
+  Element *queue = NULL, *current_el;
+  Node *node;
+
+  insertQueue(&queue, root);
+
+  while (queue) {
+    current_el = extractFirst(&queue);
+    if (!current_el) return;
+
+    node = current_el->elem;
+    if (!node) return;
+
+    node->visited++;
+    printNode(node);
+    printf("Node distance: %d\n", node->visited);
+
+    if (node->left && node->left->visited < 0) {
+      node->left->visited = node->visited;
+      insertQueue(&queue, node->left);
+    }
+
+    if (node->right && node->right->visited < 0) {
+      node->right->visited = node->visited;
+      insertQueue(&queue, node->right);
+    }
+  }
+}
+
 int main(int argc, char *argv[]) {
   Node *tree;
   Node **heap;
@@ -156,6 +238,9 @@ int main(int argc, char *argv[]) {
   printf("\nTree!\n\n");
   treefyHeap(heap, length, &tree);
   traverseTree(tree);
+
+  printf("\nBFS!\n\n");
+  BFS(tree);
 
   return EXIT_SUCCESS;
 }
