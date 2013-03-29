@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <assert.h>
+#include <time.h>
 
-#define LEN 6
+#define MAX 65536
 
 void swap(int *array, int source, int dest) {
   int temp;
@@ -63,15 +63,71 @@ void print(int *array, int length) {
   for (i = 0; i < length; ++i) {
     printf("%d ", array[i]);
   }
+  printf("\n");
+}
+
+void r_quicksort(int *array, int start, int end) {
+  int pivot, start_index, end_index;
+
+  start_index = start;
+  end_index = end;
+  pivot = array[(start + end)/2];
+
+  while (start <= end) {
+    while (array[start] < pivot) {
+      start++;
+    }
+    while (array[end] > pivot) {
+      end--;
+    }
+    if (start <= end) {
+      swap(array, start++, end--);
+    }
+  }
+
+  if (start_index < end)
+    r_quicksort(array, start_index, end);
+
+  if (start < end_index)
+    r_quicksort(array, start, end_index);
+}
+
+void quicksort(int *array, int length) {
+  r_quicksort(array, 0, length - 1);
+}
+
+void initRand(int *array, int length) {
+  int i;
+  for (i=0; i<length; i++)
+    array[i] = rand() % MAX;
+}
+
+clock_t get_clock() {
+  return clock() / (CLOCKS_PER_SEC / 1000);
+}
+
+void measureSort(const char *name, void (*sortFunction)(int *, int)) {
+  clock_t start,end;
+  double period;
+  int array[MAX];
+
+  initRand(array, MAX);
+
+  start = get_clock();
+  (*sortFunction)(array, MAX);
+  end = get_clock();
+
+  period = difftime(end, start);
+  printf ("%s time: %.lf ms\n", name, period);
 }
 
 int main(int argc, char *argv[]) {
-  int array[LEN] = { 1, 4, 5, 2, 10, 3 };
+  srand(time(NULL));
 
-  /* selection_sort(array, LEN); */
-  /* bubble_sort(array, LEN); */
-  insertion_sort(array, LEN);
-  print(array, LEN);
+  measureSort("selection", &selection_sort);
+  measureSort("bubble", &bubble_sort);
+  measureSort("insertion", &selection_sort);
+  measureSort("quicksort", &quicksort);
 
   return EXIT_SUCCESS;
 }
