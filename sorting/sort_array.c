@@ -106,18 +106,35 @@ clock_t get_clock() {
   return clock() / (CLOCKS_PER_SEC / 1000);
 }
 
+void checkSort(int *array, int length) {
+  int i;
+  for(i=0; i<length-1; i++) {
+    if (array[i] > array[i+1]) {
+      printf("Unsorted.. ");
+      fflush(stdout);
+      return;
+    }
+  }
+
+  printf("Sorted! ");
+  fflush(stdout);
+}
+
 void measureSort(const char *name, void (*sortFunction)(int *, int)) {
   clock_t start,end;
   double period;
   int array[MAX];
 
   initRand(array, MAX);
+  checkSort(array, MAX);
 
   start = get_clock();
   (*sortFunction)(array, MAX);
   end = get_clock();
 
   period = difftime(end, start);
+
+  checkSort(array, MAX);
   printf ("%s time: %.lf ms\n", name, period);
 }
 
