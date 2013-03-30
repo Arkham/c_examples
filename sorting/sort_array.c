@@ -96,6 +96,62 @@ void quicksort(int *array, int length) {
   r_quicksort(array, 0, length - 1);
 }
 
+void merge(int *array, int *work, int left, int middle, int right) {
+  int i, j, k;
+
+  i = left;
+  j = middle+1;
+  k = left;
+
+  while (i <= middle && j <= right) {
+    if (array[i] <= array[j]) {
+      work[k] = array[i];
+      k++;
+      i++;
+    } else {
+      work[k] = array[j];
+      k++;
+      j++;
+    }
+  }
+
+  while (i <= middle) {
+    work[k] = array[i];
+    k++;
+    i++;
+  }
+
+  while (j <= right) {
+    work[k] = array[j];
+    k++;
+    j++;
+  }
+
+  for (i=left; i<=right; i++) {
+    array[i] = work[i];
+  }
+}
+
+void r_mergesort(int *array, int *work, int left, int right) {
+  int middle;
+
+  if (left < right) {
+    middle = (left + right) / 2;
+
+    r_mergesort(array, work, left, middle);
+    r_mergesort(array, work, middle+1, right);
+    merge(array, work, left, middle, right);
+  }
+}
+
+void merge_sort(int *array, int length) {
+  int *work;
+
+  work = malloc(length * sizeof(int));
+  r_mergesort(array, work, 0, length - 1);
+  free(work);
+}
+
 void initRand(int *array, int length) {
   int i;
   for (i=0; i<length; i++)
@@ -141,10 +197,11 @@ void measureSort(const char *name, void (*sortFunction)(int *, int)) {
 int main(int argc, char *argv[]) {
   srand(time(NULL));
 
-  measureSort("selection", &selection_sort);
-  measureSort("bubble", &bubble_sort);
-  measureSort("insertion", &selection_sort);
-  measureSort("quicksort", &quicksort);
+  measureSort("Bubble", &bubble_sort);
+  measureSort("Selection", &selection_sort);
+  measureSort("Insertion", &selection_sort);
+  measureSort("Merge", &merge_sort);
+  measureSort("Quick", &quicksort);
 
   return EXIT_SUCCESS;
 }
