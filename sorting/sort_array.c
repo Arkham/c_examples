@@ -28,6 +28,26 @@ void selection_sort(int *array, int length) {
   }
 }
 
+void stable_selection_sort(int *array, int length) {
+  int i, j, min, value;
+
+  for (i=0; i<length; i++) {
+    min = i;
+
+    for (j=i; j<length; j++) {
+      if (array[j] < array[min])
+        min = j;
+    }
+
+    if (min != i) {
+      value = array[min];
+      for (j=i; j<min; j++)
+        array[j+1] = array[j];
+      array[i] = value;
+    }
+  }
+}
+
 void bubble_sort(int *array, int length) {
   int i, j;
 
@@ -198,8 +218,9 @@ int main(int argc, char *argv[]) {
   srand(time(NULL));
 
   measureSort("Bubble", &bubble_sort);
+  measureSort("Stable Selection", &stable_selection_sort);
   measureSort("Selection", &selection_sort);
-  measureSort("Insertion", &selection_sort);
+  measureSort("Insertion", &insertion_sort);
   measureSort("Merge", &merge_sort);
   measureSort("Quick", &quicksort);
 
