@@ -11,32 +11,51 @@ void print_array(int *array, int length) {
   for (i=0; i<length; i++) {
     printf("%d ", array[i]);
   }
-
   printf("\n");
 }
 
 int r_search(int *array, int left, int right, int haystack) {
-  int pivot, p_index;
+  int pivot, middle;
 
-  if (left == right) return -1;
+  if (left >= right) return -1;
 
-  p_index = (left+right) / 2;
-  pivot = array[p_index];
+  middle = (left+right) / 2;
+  pivot = array[middle];
 
-  if (pivot > haystack)
-    return r_search(array, left, p_index, haystack);
+  if (pivot == haystack)
+    return middle;
+  else if (pivot > haystack)
+    return r_search(array, left, middle, haystack);
   else if (pivot < haystack)
-    return r_search(array, p_index+1, right, haystack);
+    return r_search(array, middle+1, right, haystack);
 
-  // (pivot == haystack)
-  return p_index;
+  return -1;
 }
 
 int binary_search(int *array, int length, int haystack) {
-  if (length > 1)
-    return r_search(array, 0, length-1, haystack);
-  else
-    return 0;
+  return r_search(array, 0, length-1, haystack);
+}
+
+int iter_binary_search(int *array, int length, int haystack) {
+  int left, right, middle, pivot;
+
+  left = 0;
+  right = length - 1;
+
+  while (left < right) {
+    middle = (left + right) / 2;
+    pivot = array[middle];
+
+    if (pivot == haystack)
+      return middle;
+
+    if (pivot > haystack)
+      right = middle;
+    else
+      left = middle + 1;
+  }
+
+  return -1;
 }
 
 clock_t get_ms() {
@@ -65,12 +84,17 @@ void measureSearch(int *array, int length, int haystack, int (*search_function) 
   printf ("time: %.lf ns\n", period);
 }
 
-int iterative_search(int *array, int length, int haystack) {
-  int i;
+int selection_search(int *array, int length, int haystack) {
+  int i, value;
 
-  for (i=0; i<length; i++)
-    if (array[i] == haystack)
+  for (i=0; i<length; i++) {
+    value = array[i];
+    if (value == haystack) 
       return i;
+
+    if (value > haystack)
+      break;
+  }
 
   return -1;
 }
@@ -81,16 +105,28 @@ int main(int argc, char **argv) {
   for (i=0; i<LEN; i++) {
     array[i] = i*2;
   }
+  printf("%d elements\n", LEN);
 
+  printf("\nSelection:\n");
+  measureSearch(array, LEN, -1, &selection_search);
+  measureSearch(array, LEN, 20, &selection_search);
+  measureSearch(array, LEN, 30000, &selection_search);
+  measureSearch(array, LEN, 60000, &selection_search);
+  measureSearch(array, LEN, 70000, &selection_search);
+
+  printf("\nRecursive binary search:\n");
   measureSearch(array, LEN, -1, &binary_search);
   measureSearch(array, LEN, 20, &binary_search);
-  measureSearch(array, LEN, 12000, &binary_search);
-  measureSearch(array, LEN, 42000, &binary_search);
+  measureSearch(array, LEN, 30000, &binary_search);
+  measureSearch(array, LEN, 60000, &binary_search);
+  measureSearch(array, LEN, 70000, &binary_search);
 
-  measureSearch(array, LEN, -1, &iterative_search);
-  measureSearch(array, LEN, 20, &iterative_search);
-  measureSearch(array, LEN, 12000, &iterative_search);
-  measureSearch(array, LEN, 42000, &iterative_search);
+  printf("\nIterative binary search:\n");
+  measureSearch(array, LEN, -1, &iter_binary_search);
+  measureSearch(array, LEN, 20, &iter_binary_search);
+  measureSearch(array, LEN, 30000, &iter_binary_search);
+  measureSearch(array, LEN, 60000, &iter_binary_search);
+  measureSearch(array, LEN, 70000, &iter_binary_search);
 
   return EXIT_SUCCESS;
 }
