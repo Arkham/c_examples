@@ -107,32 +107,32 @@ void rb_insert_coloring(node_t **root, node_t *current) {
   } else {
     /* parent is red */
     u = uncle(current);
-    if (u != NULL) {
-      g = grandparent(current);
+    g = grandparent(current);
 
-      if (u->color == RED) {
-        /* uncle is red */
-        current->parent->color = BLACK;
-        u->color = BLACK;
-        g->color = RED;
-        rb_insert_coloring(root, g);
-      } else {
-        /* uncle is black, rotation needed */
-        if (current == current->parent->right && current->parent == g->left) {
-          rotate_left(root, current->parent);
-          current = current->left;
-        } else if (current == current->parent->left && current->parent == g->right) {
-          rotate_right(root, current->parent);
-          current = current->right;
-        }
+    if (u != NULL && u->color == RED) {
+      /* uncle is red */
+      current->parent->color = BLACK;
+      u->color = BLACK;
+      g->color = RED;
+      rb_insert_coloring(root, g);
+    } else {
+      /* uncle is black or missing, rotation needed */
 
-        current->parent->color = BLACK;
-        g->color = RED;
-        if (current == current->parent->left)
-          rotate_right(root, g);
-        else
-          rotate_left(root, g);
+      /* child is on wrong side, rotate parent */
+      if (current == current->parent->right && current->parent == g->left) {
+        rotate_left(root, current->parent);
+        current = current->left;
+      } else if (current == current->parent->left && current->parent == g->right) {
+        rotate_right(root, current->parent);
+        current = current->right;
       }
+      /* child on right side, rotate grandparent */
+      current->parent->color = BLACK;
+      g->color = RED;
+      if (current == current->parent->left)
+        rotate_right(root, g);
+      else
+        rotate_left(root, g);
     }
   }
 }
@@ -205,20 +205,92 @@ void rb_inorder_traverse(node_t *root) {
     rb_traverse(root->right);
 }
 
+typedef struct queue_t {
+  struct queue_t *next;
+  void *value;
+  int level;
+} queue_t;
+
+void push(queue_t **queue, void *value, int level) {
+  queue_t *current, *new;
+
+  if (!queue) return;
+
+  new = malloc(sizeof(queue_t));
+  if (!new) return;
+  new->value = value;
+  new->level = level;
+  new->next = NULL;
+
+  current = *queue;
+
+  if (!current) {
+    *queue = new;
+  } else {
+    while (current->next != NULL) {
+      current = current->next;
+    }
+    current->next = new;
+  }
+}
+
+int pop(queue_t **queue, void **result) {
+  queue_t *current;
+
+  if (!queue || !*queue) return -1;
+
+  current = *queue;
+
+  if (current->next == NULL) {
+    *queue = NULL;
+  } else {
+    *queue = current->next;
+  }
+
+  *result = current->value;
+  return current->level;
+}
+
+void breadth_traverse(node_t *root) {
+  int level=0;
+  node_t *popped;
+  queue_t *queue = NULL;
+
+  if (!root) return;
+
+  push(&queue, root, 0);
+
+  while (queue != NULL) {
+    level = pop(&queue, (void **) &popped);
+    if (!popped) break;
+
+    printf("level %d: %d\n", level, popped->value);
+
+    if (popped->left) {
+      push(&queue, popped->left, level+1);
+    }
+
+    if (popped->right) {
+      push(&queue, popped->right, level+1);
+    }
+  }
+}
+
+
 int main(int argc, char *argv[]) {
   node_t *rb_tree;
 
-  rb_insert(&rb_tree, 13);
-  rb_insert(&rb_tree, 2);
-  rb_insert(&rb_tree, 7);
-  rb_insert(&rb_tree, 22);
-  rb_insert(&rb_tree, 28);
-  rb_insert(&rb_tree, 8);
   rb_insert(&rb_tree, 1);
+  rb_insert(&rb_tree, 2);
+  rb_insert(&rb_tree, 3);
+  rb_insert(&rb_tree, 4);
+  rb_insert(&rb_tree, 5);
+  rb_insert(&rb_tree, 6);
   rb_traverse(rb_tree);
   printf("\n");
   rb_inorder_traverse(rb_tree);
   printf("\n");
+  breadth_traverse(rb_tree);
 
   return EXIT_SUCCESS;
 }
