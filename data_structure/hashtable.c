@@ -13,7 +13,7 @@ typedef struct entry_s entry_t;
 
 struct hashtable_s {
   int size;
-  struct entry_s **table;
+  entry_t **table;
 };
 
 typedef struct hashtable_s hashtable_t;
@@ -137,6 +137,7 @@ int main(int argc, char *argv[]) {
   printf("value is %d\n", value);
 
   ht_set(hash, "spam", "egg");
+  ht_set(hash, "spam", "foo");
   ht_set(hash, "spammer", "sausage");
   ht_set(hash, "baked", "beans");
   ht_set(hash, "aZa", "unladen");
