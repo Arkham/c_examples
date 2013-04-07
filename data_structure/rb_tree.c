@@ -181,28 +181,28 @@ void print_node(node_t *node) {
   printf("%d\n", node->value);
 }
 
-void rb_traverse(node_t *root) {
-  if (!root) return;
-
-  if (root->left)
-    rb_traverse(root->left);
-
-  print_node(root);
-
-  if (root->right)
-    rb_traverse(root->right);
-}
-
 void rb_inorder_traverse(node_t *root) {
   if (!root) return;
 
+  if (root->left)
+    rb_inorder_traverse(root->left);
+
+  print_node(root);
+
+  if (root->right)
+    rb_inorder_traverse(root->right);
+}
+
+void rb_preorder_traverse(node_t *root) {
+  if (!root) return;
+
   print_node(root);
 
   if (root->left)
-    rb_traverse(root->left);
+    rb_preorder_traverse(root->left);
 
   if (root->right)
-    rb_traverse(root->right);
+    rb_preorder_traverse(root->right);
 }
 
 typedef struct queue_t {
@@ -286,9 +286,9 @@ int main(int argc, char *argv[]) {
   rb_insert(&rb_tree, 4);
   rb_insert(&rb_tree, 5);
   rb_insert(&rb_tree, 6);
-  rb_traverse(rb_tree);
-  printf("\n");
   rb_inorder_traverse(rb_tree);
+  printf("\n");
+  rb_preorder_traverse(rb_tree);
   printf("\n");
   breadth_traverse(rb_tree);
 
