@@ -12,7 +12,21 @@ typedef struct node {
   struct node *parent;
 } node_t;
 
-node_t *create_node(int value) {
+typedef struct rb_tree {
+  node_t *root;
+} rb_tree_t;
+
+rb_tree_t *rb_create() {
+  rb_tree_t *tree;
+
+  if ( (tree = malloc(sizeof(rb_tree_t))) == NULL)
+    return NULL;
+
+  tree->root = NULL;
+  return tree;
+}
+
+node_t *rb_create_node(int value) {
   node_t* new;
 
   if ( (new = malloc(sizeof(node_t))) == NULL)
@@ -25,17 +39,17 @@ node_t *create_node(int value) {
   return new;
 }
 
-node_t *grandparent(node_t *current) {
+node_t *rb_grandparent(node_t *current) {
   if (current != NULL && current->parent != NULL)
     return current->parent->parent;
   else
     return NULL;
 }
 
-node_t *uncle(node_t *current) {
+node_t *rb_uncle(node_t *current) {
   node_t *grandpa;
 
-  grandpa = grandparent(current);
+  grandpa = rb_grandparent(current);
   if (grandpa == NULL) {
     return NULL;
   } else {
@@ -46,7 +60,7 @@ node_t *uncle(node_t *current) {
   }
 }
 
-void rotate_left(node_t **root, node_t *node) {
+void rb_rotate_left(rb_tree_t *tree, node_t *node) {
   node_t *r_child = node->right;
 
   if (!r_child) return;
@@ -58,7 +72,7 @@ void rotate_left(node_t **root, node_t *node) {
   r_child->parent = node->parent;
 
   if (r_child->parent == NULL) {
-    *root = r_child;
+    tree->root = r_child;
   } else {
     if (node == node->parent->left)
       node->parent->left = r_child;
@@ -70,12 +84,9 @@ void rotate_left(node_t **root, node_t *node) {
   node->parent = r_child;
 }
 
-void rotate_right(node_t **root, node_t *node) {
-  node_t *l_child;
+void rb_rotate_right(rb_tree_t *tree, node_t *node) {
+  node_t *l_child = node->left;
 
-  if (!root || !node) return;
-
-  l_child = node->left;
   if (!l_child) return;
 
   node->left = l_child->right;
@@ -84,7 +95,7 @@ void rotate_right(node_t **root, node_t *node) {
   }
 
   if (node->parent == NULL)
-    *root = l_child;
+    tree->root = l_child;
   else
     if (node == node->parent->left)
       node->parent->left = l_child;
@@ -96,7 +107,7 @@ void rotate_right(node_t **root, node_t *node) {
   l_child->right = node;
 }
 
-void rb_insert_coloring(node_t **root, node_t *current) {
+void rb_insert_coloring(rb_tree_t *tree, node_t *current) {
   node_t *u, *g;
 
   if (current->parent == NULL) {
@@ -106,47 +117,44 @@ void rb_insert_coloring(node_t **root, node_t *current) {
     return;
   } else {
     /* parent is red */
-    u = uncle(current);
-    g = grandparent(current);
+    u = rb_uncle(current);
+    g = rb_grandparent(current);
 
     if (u != NULL && u->color == RED) {
       /* uncle is red */
       current->parent->color = BLACK;
       u->color = BLACK;
       g->color = RED;
-      rb_insert_coloring(root, g);
+      rb_insert_coloring(tree, g);
     } else {
       /* uncle is black or missing, rotation needed */
 
       /* child is on wrong side, rotate parent */
       if (current == current->parent->right && current->parent == g->left) {
-        rotate_left(root, current->parent);
+        rb_rotate_left(tree, current->parent);
         current = current->left;
       } else if (current == current->parent->left && current->parent == g->right) {
-        rotate_right(root, current->parent);
+        rb_rotate_right(tree, current->parent);
         current = current->right;
       }
       /* child on right side, rotate grandparent */
       current->parent->color = BLACK;
       g->color = RED;
       if (current == current->parent->left)
-        rotate_right(root, g);
+        rb_rotate_right(tree, g);
       else
-        rotate_left(root, g);
+        rb_rotate_left(tree, g);
     }
   }
 }
 
-node_t * rb_insert(node_t **root, int value) {
-  node_t *current, *new;
-
-  if (!root) return NULL;
-  current = *root;
-  new = create_node(value);
+node_t * rb_insert(rb_tree_t *tree, int value) {
+  node_t *current = tree->root;
+  node_t *new = rb_create_node(value);
 
   /* empty tree */
   if (!current) {
-    *root = new;
+    tree->root = new;
   }
 
   while (current != NULL) {
@@ -169,7 +177,7 @@ node_t * rb_insert(node_t **root, int value) {
     }
   }
 
-  rb_insert_coloring(root, new);
+  rb_insert_coloring(tree, new);
   return new;
 }
 
@@ -251,7 +259,7 @@ int pop(queue_t **queue, void **result) {
   return current->level;
 }
 
-void breadth_traverse(node_t *root) {
+void rb_breadth_traverse(node_t *root) {
   int level=0;
   node_t *popped;
   queue_t *queue = NULL;
@@ -276,21 +284,49 @@ void breadth_traverse(node_t *root) {
   }
 }
 
+void rb_print_node_depth(node_t *node, int depth) {
+  int i;
+
+  for (i=0; i<depth; i++) {
+    printf(" ");
+  }
+  printf("%3d\n", node->value);
+}
+
+void rb_depth_traverse(node_t *node, int depth) {
+  if (!node) return;
+
+  if (node->left)
+    rb_depth_traverse(node->left, depth+3);
+
+  rb_print_node_depth(node, depth);
+
+  if (node->right)
+    rb_depth_traverse(node->right, depth+3);
+}
+
+void rb_traverse(node_t *root) {
+  rb_depth_traverse(root, 0);
+}
 
 int main(int argc, char *argv[]) {
-  node_t *rb_tree;
+  rb_tree_t *tree;
 
-  rb_insert(&rb_tree, 1);
-  rb_insert(&rb_tree, 2);
-  rb_insert(&rb_tree, 3);
-  rb_insert(&rb_tree, 4);
-  rb_insert(&rb_tree, 5);
-  rb_insert(&rb_tree, 6);
-  rb_inorder_traverse(rb_tree);
+  tree = rb_create();
+
+  rb_insert(tree, 1);
+  rb_insert(tree, 2);
+  rb_insert(tree, 3);
+  rb_insert(tree, 4);
+  rb_insert(tree, 5);
+  rb_insert(tree, 6);
+  rb_inorder_traverse(tree->root);
   printf("\n");
-  rb_preorder_traverse(rb_tree);
+  rb_preorder_traverse(tree->root);
   printf("\n");
-  breadth_traverse(rb_tree);
+  rb_breadth_traverse(tree->root);
+  printf("\n");
+  rb_traverse(tree->root);
 
   return EXIT_SUCCESS;
 }
