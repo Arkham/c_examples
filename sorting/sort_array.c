@@ -217,11 +217,11 @@ void measureSort(const char *name, void (*sortFunction)(int *, int)) {
 int main(int argc, char *argv[]) {
   srand(time(NULL));
 
-  measureSort("Bubble", &bubble_sort);
-  measureSort("Stable Selection", &stable_selection_sort);
-  measureSort("Selection", &selection_sort);
-  measureSort("Insertion", &insertion_sort);
-  measureSort("Merge", &merge_sort);
+  /* measureSort("Bubble", &bubble_sort); */
+  /* measureSort("Stable Selection", &stable_selection_sort); */
+  /* measureSort("Selection", &selection_sort); */
+  /* measureSort("Insertion", &insertion_sort); */
+  /* measureSort("Merge", &merge_sort); */
   measureSort("Quick", &quicksort);
 
   return EXIT_SUCCESS;

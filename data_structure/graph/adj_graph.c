@@ -245,8 +245,7 @@ static void generic_search(search_info_t *info, int root, bool use_queue)
 
     info->parent[current.sink] = current.source;
     info->time[current.sink] = info->reached;
-    info->reached++;
-    info->preorder[info->reached] = current.sink;
+    info->preorder[info->reached++] = current.sink;
 
     if (current.source == current.sink) {
       info->depth[current.sink] = 0;
