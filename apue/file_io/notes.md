@@ -70,3 +70,37 @@
     * pointers to which actual data blocks contain the file
 * lseek does not cause I/O, just updates current offset
 
+## Atomic operations
+
+* multiple process writing on the same file should always open with `O_APPEND`, otherwise they can overwrite each other
+* pread and pwrite functions do it atomically, they lseek and read/write but cannot be interrupted
+* file creation should use `O_CREAT | O_EXCL` to do it atomically
+
+## dup and dup2 functions
+
+* `dup(filedes)`
+* `dup2(filedes, filedes2)`
+* duplicate file descriptors (in the process table entry), new filedes with lowest number
+* all file table data is the same, file status flags, offset, etc
+* dup2 is an atomic operation
+  * if descriptors are different, it closes filedes2 if it's open, then duplicates filedes into filedes2
+  * if they're equal, filedes2 is not closed
+* dup is equal to: `fcntl(filedes, F_DUPFD, 0)`
+
+## sync, fsync, fdatasync
+
+* delayed write: UNIX kernels use a buffer/page cache through which disk I/O passes
+* these functions ensure consistency with disks
+* `sync(void)` queues modified blocks for read/write; does not wait; is generally launched by a daemon every N seconds
+* `fsync(filedes)` waits for disk to complete before returning, i.e. useful for databases
+* `fdatasync(filedes)` affects only data portions of a file
+
+## fcntl function
+
+* `fcntl(filedes, cmd, (arg))`
+* cmd behaviour
+  * `F_DUPFD` duplicate existing file descriptor
+  * `F_GETFD, F_SETFD` get or set file descriptor flags, i.e. `FD_CLOEXEC`
+  * `F_GETFL, F_SETFL` get or set file status flags
+  * `F_GETOWN, F_SETOWN` get or set async I/O ownership
+  * `F_GETLK, F_SETLK, F_SETLKW` get or set record locks
