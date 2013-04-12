@@ -104,3 +104,14 @@
   * `F_GETFL, F_SETFL` get or set file status flags
   * `F_GETOWN, F_SETOWN` get or set async I/O ownership
   * `F_GETLK, F_SETLK, F_SETLKW` get or set record locks
+
+## ioctl
+
+* `ioctl(filedes, request, ...)`
+* catchall for I/O operations, such as terminal I/O
+
+## /dev/fd
+
+* stdin, stdout and stderr can be found in /dev/fd/
+* echo "spam" | cat file.hole /dev/fd/0 temp.foo
+* they can be found also as /dev/stdin /dev/stdout
