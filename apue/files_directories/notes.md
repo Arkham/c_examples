@@ -16,9 +16,9 @@
         uid_t      st_uid;      / * user ID Of owner */
         gid_t      st_gid;      / * group ID Of owner */
         off_t      st_size;     / * file size in bytes, for regular files */
-        time_t     st_atime;    / * last access time */
-        time_t     st_mtime;    / * last modification time */
-        time_t     st_ctime;    / * last file status change time */
+        time_t     st_atime;    / * last access-time */
+        time_t     st_mtime;    / * last modification-time */
+        time_t     st_ctime;    / * last change-time of file status */
         blksize_t  st_blksize;  / * best I/0 blocksize */
         blkcnt_t   st_blocks;   / * number of disk blocks */
     }
@@ -141,5 +141,33 @@
 * when a file link count gets to 0, the kernel deletes its content
 * when the program exits, all open files are closed
 * unlink is used for tmpfiles, so that those are still deleted by the kernel if the program crashes
+* `rename(oldname, newname)`
+* when renaming files, we are as if we were deleting the old file and creating a new one, so:
+  * we need write and execute permissions on both folders
+
+## Symbolic links
+
+* Solve two problems of hard links:
+  * you can generally create hard link only on the same file system
+  * only root user can create hard links to directories
+* we always need to know if a function follows symlinks
+
+## symlink and readlink functions
+
+* `symlink(actualpath, sympath)`
+* `readlink(pathname, *buf, bufsize)`
+
+## File times
+
+* generally Epoch timestamps
+* `st_atime`, last access-time
+* `st_mtime`, last modification-time, aka last time contents were changed
+* `st_ctime`, last change-time, aka last time inode was modified
+
+## utime function
+
+* `utime(*pathname, *times)` changes atime and mtime
+* if times is NULL, set atime and mtime to current time
+
 
 
