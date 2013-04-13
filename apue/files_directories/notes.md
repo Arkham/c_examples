@@ -190,3 +190,9 @@
 
 * `chdir(pathname)`
 * `fchdir(filedes)`
+* kernel maintains cwd for each process, but only inode reference, not the directory pathname
+
+## Device special files
+
+* stored in `st_dev` and `st_rdev`
+* every file system is known by its major and minor device numbers
