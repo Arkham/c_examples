@@ -169,5 +169,24 @@
 * `utime(*pathname, *times)` changes atime and mtime
 * if times is NULL, set atime and mtime to current time
 
+## mkdir and rmdir functions
 
+* `mkdir(pathname, mode)`
+* automatically entries for dot and dot-dot are created (links count are increased too)
+* directories must be executable in order to be traverseable
+* empty dirs may be deleted by `rmdir(pathname)`
 
+## Reading directories
+
+* `opendir(pathname)`
+* `readdir(dp)`
+* dirent struct:
+    struct dirent {
+        ino_t d_ino; /* inode number */
+        char d_name[NAME_MAX + 1]; /* null terminated filenames */
+    }
+
+## chdir, fchdir and getcwd functions
+
+* `chdir(pathname)`
+* `fchdir(filedes)`
