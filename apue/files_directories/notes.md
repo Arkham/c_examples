@@ -99,4 +99,47 @@
 * `fchmod(filedes, mode)`
 * these functions change only ctime
 
+## sticky bit
+
+* originally used to keep programs in swap for fast access
+* if a directory has the sticky bit set (`chmod o+s <dir>`), a file can be removed or renamed only if:
+  * user has write execute permissions on the directory
+  * and one of the following:
+    * is the superuser
+    * user owns the file
+    * user owns the directory
+* used for tmp folders (many users have to make tmpfiles, but no one should touch other users' files)
+
+## chown, fchown, lchown functions
+
+## File size
+
+* found in `st_size`
+* size in bytes for regular files
+* size for directories multiple of a number 16, 256
+* size of pointed filename for symlinks
+
+## Holes in files
+
+## File truncation
+
+* `truncate(pathname, length)`
+* `ftruncate(filedes, length)`
+
+## File systems
+
+* partition > file system > cylinder group > inodes array > inode
+* two directory entries can point to the same inode; each inode has a link count which tells if it can be deleted
+* most of the stat info is fetched from the inode, the directory entry has only the dir name and the inode number
+* the inode of the directory points to another inode in the same file system
+* we cannot have hard links across different file systems
+
+## link, unlink and rename
+
+* `link(existingpath, newpath)`
+* `unlink(pathname)`
+* when a file link count gets to 0, the kernel deletes its content
+* when the program exits, all open files are closed
+* unlink is used for tmpfiles, so that those are still deleted by the kernel if the program crashes
+
 
