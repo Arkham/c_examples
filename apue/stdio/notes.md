@@ -109,3 +109,34 @@
   * `rewind(*fp)`
 
 ## Formatted I/O
+
+* `printf(format, ...)`
+* `fprintf(*fp, format, ...)`
+* `sprintf(*buf, format, ...)`
+* `snprintf(*buf, size, format, ...)`
+* format structure:
+  * flags
+  * fieldwidth
+  * precision
+  * lenmodifier
+  * convtype
+
+## Formatted input
+
+* `scanf(format, ...)`
+* `fscanf(*fp, format, ...)`
+* `sscanf(*buf, format, ...)`
+
+## Implementation details
+
+* each stream has an associated file descriptor, `fileno(*fp)`
+* useful for calling dup or fcntl
+
+## Temporary files
+
+* `char *tmpnam(*ptr)`
+* `FILE *tmpfile(void)`
+* tmpfile generally calls tmpnam, creates a file with mode w+, then unlinks it
+* `char *tempnam(*directory, *prefix)`
+* `int mkstemp(*template` similar to tmpfile, but returns a file descriptor instead of a stream
+
