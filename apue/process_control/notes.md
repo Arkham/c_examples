@@ -226,3 +226,5 @@
 * while the real user and group ID remain the same across an exec, the effective user ID and group ID may change:
   * if the new program is set-user-id, the effective IDs become the owner ID of the file
 * generally there is a single system call (`execve`), the other five are just wrappers
+* note that we can set arg0 as anything we like:
+  * the `login` program does it to indicate to the shell that it is being invoked as a login shell
