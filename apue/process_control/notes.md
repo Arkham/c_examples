@@ -288,6 +288,20 @@
 ## Interpreter files
 
 * interpreter files are text files which begin with `#! pathname [ optional-argument ]`
-* for example, many shell scripts start with `#! /bin/bash`
-* the pathname must be an absolute, since PATH is not used
+* for example, many shell scripts start with `#! /bin/sh`
+* the pathname is generally an absolute path, since PATH is not used
+* for example, awk scripts have a first line like `#! /bin/awk -f`
+  * when this is launched the interpreter gets passed to the awk executable and we would get something like:
+  * `/bin/awk -f /path/to/awk/script first_arg, second_arg`
+* interpreter files are useful because:
+  * they hide the fact that some programs are scripts
+  * are very efficient to use; we could wrap it in a normal shell script, but it would require more oberhead overall
+  * let us write shell scripts using another shell, such as bash or zsh
 
+## system function
+
+* it is very convenient to execute commands from within a program
+* `int system(const char *cmdstring)` is implemented with fork, exec and waitpid so:
+  * if fork or waitpid fail, system returns -1 and sets errno accordingly
+  * if exec fails, the return value is as the shell had called `exit(127)`
+  * if everything succeds, the return value is the termination status of the shell
