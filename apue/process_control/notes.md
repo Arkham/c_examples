@@ -127,4 +127,41 @@
 * `ps` shows zombie processes as Z
 * if a process inherited by init dies, it will never become a zombie because init always waits for its children
 
+## wait and waitpid functions
 
+* when a process terminates, the kernel notifies the parent by sending it the SIGCHLD signal
+* the parent can choose to ignore this signal, which is the default, or can setup a signal handler to manage the event
+* when a process calls `wait` or `waitpid` it can
+  * block, if all its children are still running
+  * return immediately with the termination status of a child, if a child has terminated and is waiting for its status to be fetched
+  * return immediately with an error, if it doesn't have any child processes
+* `pid_t wait(int *statloc)`
+* `pid_t waitpid(pid_t pid, int *statloc, int options`
+* wait can block the caller until a child process terminates, while waitpid has a non-blocking option
+* waitpid function doesn't wait for the first child to terminate; it has a set of options to decide for which child wait for
+* we can tell which child has terminated because its pid is returned by the wait functions
+* the exit information of the child is saved in `statloc`, if it's not NULL
+  * to read this info, four macros should be used
+    * WIFEXITED(status);   if this is true, use WIFEXITSTATUS(status) to fetch the exit status
+    * WIFSIGNALED(status); if this is true, use WTERMSIG(status) to fetch the signal
+    * WIFSTOPPED(status);  if this is true, use WSTOPSIG(status) to fetch the signal which caused the child to stop
+    * WIFCONTINUED(status)
+* if we want for a specific child with wait:
+  * we would have to wait for any child to terminate
+  * if it's the one we're looking for, good job
+  * otherwise, save the pid and status info in an array, and wait again
+    * the next time we want to wait for a child, go through the list to see if the child has already been waited for
+* the previous process can be simplified with `waitpid`:
+  * if pid == -1, wait for any child
+  * if pid > 0,   wait for child with process ID pid
+  * if pid == 0,  wait for any child in same process group ID as calling process
+  * if pid < -1,  wait for any child with process group ID abs(pid)
+* waitpid supports some options:
+  * WCONTINUED | WNOHANG | WUNTRACED
+* waitpid is much more powerful than wait since:
+  * it can wait for a specific child
+  * it has a non blocking version
+  * it supports job control
+* to prevent zombie processes the trick is to call fork twice:
+  * as soon as the first child is forked, fork again and exit
+  * the second child will get inherited by init, so it will always be waited for
