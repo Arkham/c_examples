@@ -89,4 +89,42 @@
     * this is usual for network servers, the parent waits for connections; when it gets one, it forks and let the child handle the connection
   * a process wants to execute a different program.
     * this is common for shells, which use `exec` after forking
+    * in some OS, the action fork+exec is called spawn
+
+## vfork function
+
+* vfork should be used when we want to exec right after forking
+* child shares same address space as parent
+* no copy is performed of the parent data structures
+  * better than copy-on-write since no copying is better than a little copying
+* vfork guarantee that the child will run first until it calls exec or exit
+
+## exit functions
+
+* a process can exit normally in five ways:
+  * return from main
+  * calling `exit`, launching all atexit handles and closing standard I/O streams
+  * calling `_exit` or `_Exit`, ignoring all handlers
+  * returning from the start routine of the last thread
+  * calling `phtread_exit` from the last thread in the process
+* a process can terminate abnormally in three ways:
+  * calling `abort` (generates SIGABRT)
+  * after receiving a signal
+  * the last thread responds to a cancellation request
+* regardlessly of how a process terminates, the kernel performs the same procedures:
+  * it closes all open file descriptors
+  * releases the memory used by the process and so on..
+* parent must be notified of the child termination
+  * when the process terminates normally, it returns an exit status
+  * if it didn't, the kernel generates one to be sento to the parent process
+* if the parent terminates before the child:
+  * the child is inherited by init
+* if the child terminates before the parent:
+  * the kernel keeps some information about each terminating process, such as:
+    * process ID, termination status, amount of CPU time
+  * then the kernel can discard the process, it's open file des and free the memory
+  * a child which parent has not yet waited for is called *zombie process*
+* `ps` shows zombie processes as Z
+* if a process inherited by init dies, it will never become a zombie because init always waits for its children
+
 
