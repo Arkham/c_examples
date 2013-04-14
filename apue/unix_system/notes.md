@@ -100,3 +100,22 @@
     Linux 3box 3.8.6-1-ARCH #1 SMP PREEMPT Sat Apr 6 08:44:16 CEST 2013 i686 GNU/Linux
     Darwin MetalMacBook.local 12.3.0 Darwin Kernel Version 12.3.0: Sun Jan  6 22:37:10 PST 2013; root:xnu-2050.22.13~1/RELEASE_X86_64 x86_64
 * `int gethostname(char *name, int namelen)`
+
+## Time and date routines
+
+* Epoch: 1 January 1970
+* UNIX keeps:
+  * UTC time instead of localtime
+  * automatically handling conversions (i.e. DST)
+  * time and date are kept in single entity
+* `time_t time(time_t *calptr)` in seconds
+* `int gettimeofday(structu timeval *restrict tp, void *restrict tzp)` in microseconds
+      struct timeval {
+        time_t tv_sec;
+        long   tv_usec;
+      }
+* `localtime, gmtime` convert calendar times into a tm struct with broken down values
+* `mktime` converts a tm struct to calendar time
+* `asctime, ctime` return a string representation of tm struct or calendar time
+* `size_t strftime(char *restrict buf, size_t maxsize, const char *restrict format, const struct tm *restrict tmptr)`
+* `locatime, mktime, ctime & strftime` are affected by the TZ environment variable, which is used instead of the default time zone
