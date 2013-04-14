@@ -76,4 +76,106 @@
   * uninitialized data
   * heap
   * stack (generally growing from high address to low address)
+  * command line arguments and environment variables
 * `size` shows a program size in bytes of text, initialized data and bss segments.
+
+## Shared libraries
+
+* shared libraries remove common library routines from the process, and instead reference to a single copy of the routine
+* reduces the program size, but can add some overhead
+* moreover, when the library is updated (and the API hasn't changed) we don't have to relink the program
+* shared:
+  * gcc shared.c -Wall
+  * ls -la a.out
+      -rwxr-xr-x  1 arkham users 4.9K Apr 14 12:16 a.out*
+* shared disabled:
+  * gcc shared.c -static -Wall
+  * ls -la a.out
+      -rwxr-xr-x 1 arkham users 753K Apr 14 12:16 a.out*
+
+## Memory allocation
+
+* `malloc(size_t size)` allocates size bytes, with undefined initial value
+* `calloc(size_t nobj, size_t size)` allocates nobj * size bytes, initialized to 0
+* `realloc(void *ptr, size_t newsize)` increases/decreases the previously allocated area
+  * when the size increases, this may involve moving the previously allocated area somewhere else
+  * also, the newly allocated space is not initialized
+* `free(void *ptr)` the space pointed by ptr is deallocated
+* the pointer returned by the alloc functions is guaranteed to be aligned correctly
+* since they return void * pointers we dont' have to manually cast them
+* allocation routines are implemented with the `sbrk` system call, which expands the heap of the process
+* even when memory is freed, generally the program keeps it in its memory pool
+* potential problems:
+  * when writing past the end of allocated area:
+    * we could overwrite the data that is used for internal bookeeping
+    * we could overwrite other dynamic data
+  * freeing an already freed object
+  * freeing a not malloced pointer
+  * malloc with no free, *memory leak*
+
+## Alternate memory allocators
+
+* libmalloc
+* vmalloc
+* quick-fit
+* alloca
+
+## Environment variables
+
+* environment strings are in the form `name=value`
+* `char *getenv(const char *name)`
+* `HOME, LANG, LC_ALL, SHELL, TERM`
+* we cannot usually affect the environment variables of the parent process
+* `int putenv(char *str)` takes a "name=value" string and saves it
+* `int setenv(const char *name, const char *value, int rewrite)` sets name to value, rewriting if necessary
+* `int unsetenv(const char *name)` removes the definition for name
+* generally if we want to add new variables
+  * since the environment is generally the last element and the stack grows from higher address to lower
+  * we have to allocate space on the heap copy the pointers in the environment location
+
+## setjmp and longjmp functions
+
+* in C, we can't goto a label in another function
+* setjmp and longjmp are used to handle error conditions in deeply nested function calls
+* they use a shared `mp_buf` envobject, usually a global variable
+* `int setjmp(jmp_buf env)` is called wherever you want to jump
+* `void longjmp(longjmp env, int val)` is called to jump to the location env, making setjmp return val
+* `longjmp` makes the stack go back and discard all stack frames
+* when going back, the automatic variables may or may not be recovered
+  * using `volatile` keyword makes the compiler leaves alone variables
+
+## Potential automatic variable problems
+
+* given this function:
+    FILE *open_data
+    {
+      FILE *fp;
+      char buf[BUFSIZE];
+
+      if ( (fp = fopen("spam.txt", "r")) == NULL)
+        return NULL;
+
+      if (setvbuf(fp, buf, _IOLBF, BUFSIZE) != 0)
+        return NULL;
+
+      return fp;
+    }
+* when the function returns, the space it uses for the buffer gets thrown away, because its stack frame is discarded
+* so either:
+  * use extern or static keywords
+  * use dynamic allocation
+
+## getrlimit and setrlimit functions
+
+* `int getrlimit(int resource, struct rlimit *rlptr)`
+* `int setrlimit(int resource, const struct rlimit *rlptr)`
+* each process has a set of resource limits, described by structures like
+      struct rlimit {
+        rlim_t rlim_cur; /* soft limit: current value */
+        rlim_t rlim_max; /* hard limit: maximum value */
+      }
+* you can change soft limit <= hard limit
+* you can change hard limit >= soft limit; irreversible for normal users
+* superuser can raise hard limit
+* limit can be infinite `RLIMIT_INIFINITY`
+* limit examples: available memory, file size, cpu time, data, locks, number of files, child processes, sockets, stack size.
