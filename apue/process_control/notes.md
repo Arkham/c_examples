@@ -165,3 +165,34 @@
 * to prevent zombie processes the trick is to call fork twice:
   * as soon as the first child is forked, fork again and exit
   * the second child will get inherited by init, so it will always be waited for
+
+## waitid function
+
+* `int waitid(idtype_t idtype, id_t id, siginfo_t *infop, int options)`
+
+## wait3 and wait4 functions
+
+* these functions allow to return a summary of all used resources by the child process, such as:
+  * user CPU time
+  * system CPU time
+  * number of page faults
+  * number of signals received
+
+## Race conditions
+
+* a race condition is when multiple processes try to do something with shared data and the result depends on the order in which they run
+  * whenever we use fork, we are never sure if the child process or the parent process will run first
+  * even if we sleep from inside a process, a high system load and the kernel scheduling algorithm could change the execution order
+  * problems like this are difficult to debug because this code tend to work "most of the time"
+* a process which wants to wait for its children to terminate must call one of the wait functions
+* a process which wants to wait for its parent to terminate:
+  * could try some sort of polling, such as:
+
+    ```c
+    while (waitpid() != pid) {
+      sleep(1);
+    }
+    ```
+  * this approach wastes CPU time and the caller is awakened every second to check
+* otherwise a set of signals could be sent from the parent to the child and vice versa
+  * so that the two processes can synchronize themselvers using a set of signals and waiting for them
