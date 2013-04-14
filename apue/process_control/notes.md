@@ -228,3 +228,66 @@
 * generally there is a single system call (`execve`), the other five are just wrappers
 * note that we can set arg0 as anything we like:
   * the `login` program does it to indicate to the shell that it is being invoked as a login shell
+
+## Changing user IDs and group IDs
+
+* in general, we use the _least-priviledge_ model when designing applications, aka
+  * the programs should use the least amount of priviledges necessary to accomplish any task
+  * so that malicious users are limited in tricking our application to overextend its priviledges
+* we cant set the real user ID and the effective user ID with:
+  * `int setuid(uid_t uid)`
+  * `int setgid(gid_t gid)`
+* when changing the user ID:
+  * if the process has superuser priviledges:
+    * setuid sets real ID, effective ID and saved-set-user-ID to uid
+  * if the process does not have superuser priviledges:
+    * if uid == real ID || uid == saved set-user-ID, then the effective user ID is set to uid; the other IDs are left unchanged
+  * otherwise, errno is set to EPERM and -1 is returned
+* only a superuser can change the real user ID; normally the real user ID is set by `login` when we login and it never changes
+* the effective user ID is set by the exec functions only if the set-user-ID bit is set:
+* at any time, the effective user ID may be set to the real user ID or the saved set-user-ID
+* the saved set-user-ID is copied from the effective user ID by exec; if the program set-user-ID bit is set, this copy is performed *after* loading the file owner ID
+* UNIX functions:
+  * we can access the real user ID with `getuid`
+  * we can access the effective use ID with `geteuid`
+  * we cannot access the saved set-user-ID
+
+## saved set-user-ID example
+
+* the `man` utility display manpage information for programs, it is usually set-user-ID or set-group-ID
+* it has to read files and run commands in order to show the manpages (or even writing to files sometimes)
+* to prevent being tricked into running the wrong commands or touching the wrong files, the `man` program uses two sets of permissions:
+  * those of the user running man
+  * those of the user which owns the man executable
+* the following steps take place
+  * if the man executable is owned by the man user and has set-user-ID set, we have after the exec:
+    * real user ID = user ID
+    * effective user ID = man ID
+    * saved set-user-ID = man ID
+  * at this point, the man executable can access its configuration files and man pages. It also saves the effective user ID into `euid`
+  * before running any command on our behalf, the man executable calls `setuid(getuid())`. Since we are not the superuser the effective user ID is set to the real user ID, so:
+    * real user ID = user ID
+    * effective user ID = user ID
+    * saved set-user-id = man ID
+    * at this point, it's running with our user ID so we can access the correct files and we can launch any filter
+  * when the filter is done, the man executable can `setuid(euid)` to update the effective user ID to its own ID
+  * the man program can now operate on its files
+* this mechanism allows to the man program to start with its own priviledges, then switch to the real user ID and then revert to its own priviledges:
+  * if during operation, man spawns a shell, it would have to priviledges of our user
+
+### setreuid and setregid functions
+
+* these functions allow to swap the real user ID and the effective user ID
+
+### seteuid and setegid functions
+
+* these functions allow to set the effective user ID:
+  * for unpriviledged users, only values of real user ID or saved set-user-ID are allowed
+  * for priviledged users, any value is permitted, but only effective user ID is set (while setuid sets all three)
+
+## Interpreter files
+
+* interpreter files are text files which begin with `#! pathname [ optional-argument ]`
+* for example, many shell scripts start with `#! /bin/bash`
+* the pathname must be an absolute, since PATH is not used
+
