@@ -196,3 +196,33 @@
   * this approach wastes CPU time and the caller is awakened every second to check
 * otherwise a set of signals could be sent from the parent to the child and vice versa
   * so that the two processes can synchronize themselvers using a set of signals and waiting for them
+
+## exec functions
+
+* when a program calls one of the exec functions:
+  * the existing program is completely replace by a new program
+  * the new program starts executing its main function
+  * the process ID does not change, since exec merely replaces the current process with new text, data, heap and stack segments
+* six exec functions
+  * `int execl(const char *pathname, const char *arg0, ..., /* (char *) 0 */ )`
+  * `int execv(const char *pathname, char *const argv[])`
+  * `int execle(const char *pathname, const char *arg0, ..., /* (char *) 0, char *const envp[] */`
+  * `int execve(const char *pathname, char *const argv[], char *const envp[])`
+  * `int execlp(const char *filename, const char *arg0, ..., /* (char *) 0 */)`
+  * `int execvp(const char *filename, char *const argv[])`
+* the first four take a path argument, while the latter two take a filename:
+  * if the filename contains a slash, it is treated as a pathname
+  * otherwise, we search the executable in the directories listed in the PATH environment variable
+* if the filename passed to execlp and execvp is not executable, the function assumes it is a shell script and tries to invoke `/bin/sh` on it
+* the execl functions require arguments to be passed separately (marking the end with a NULL pointer)
+* the execp functions require arguments to be passed as a single array
+* the execle and execve functions allow to the environment variables to be passed to the new program:
+  * the other ones use the standard `environ` variable
+* every system has a maximum number of command line arguments:
+  * generally it is 4096 on POSIX.1 systems
+  * we can acknowledge this limitation with shell expansion:
+    * `grep spam /usr/share/*/*` can return "Argument list too long"
+* if the file descriptor has the close-on-exec flags set, it is closed across an exec (generally it's left open)
+* while the real user and group ID remain the same across an exec, the effective user ID and group ID may change:
+  * if the new program is set-user-id, the effective IDs become the owner ID of the file
+* generally there is a single system call (`execve`), the other five are just wrappers
