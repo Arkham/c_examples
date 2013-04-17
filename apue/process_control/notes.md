@@ -304,4 +304,41 @@
 * `int system(const char *cmdstring)` is implemented with fork, exec and waitpid so:
   * if fork or waitpid fail, system returns -1 and sets errno accordingly
   * if exec fails, the return value is as the shell had called `exit(127)`
-  * if everything succeds, the return value is the termination status of the shell
+  * if fork, exec and waitpid succed, the return value is the termination status of the shell
+* if we look at `system.c`
+  * the system implementation launches a shell and passes it a command with the `-c` flag
+    * in this way, the shell handles all the path-resolution and the tokenization of the string
+  * `_exit` is called to ensure that standard I/O buffers are not flushed in the child process
+  * instead of using fork and exec directly, the system handles all the error handling (or signal handling)
+
+### set-user-ID programs
+
+* if we call system from a set-user-ID program we are creating a huge security hole
+  * the superuser permissions are transferred to the program executed by system
+  * if the attacker can control which program is launched, we are in trouble
+
+## Process accounting
+
+* the kernel writes an accounting record for each process that terminates
+* a superuser may execute `accton` with a pathname to enable accounting
+* among the various information saved:
+  * command name & termination status
+  * real uid/gid
+  * user/system/elapsed time
+  * memory used
+  * blocks used/read/written
+* the order of the entries in the accounting file depend on the order of termination of the processes
+
+## User identification
+
+* any process can find its real user and group ID, but how to get the login name?
+* `char *getlogin(void)` gets the name of the logged in user
+* once we have found the name of the user, we can fetch the password from the `getpwnam`
+
+## Process times
+
+* there are three times that can be measured:
+  * wall clock time
+  * user CPU time
+  * system CPU time
+* `clock_t times(struct tms *buf)`
