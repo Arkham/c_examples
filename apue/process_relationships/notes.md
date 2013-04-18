@@ -85,3 +85,46 @@
     * its process ID != its process group ID
 * there is no session ID, setsid returns the process group ID of the session leader
 * `pid_t getsid(pid_t pid)` returns the process group ID of the process 'pid' session leader
+
+## Controlling terminals
+
+* a session can have a single controlling terminal; this is the terminal device (or pseudo terminal) on which we login
+* the session leader that connects to the controlling terminal is the controlling process
+* the process groups in a session can be
+  * a single foreground process group
+  * many background process groups
+* when we type the terminal interrupt key (Control-C) an interrupt signal is sent to all processes in the foregroud process group
+* when we type the terminal quit key (Control-backslash) a quit signal is sent to all processes in the foregroud process group
+* when the network disconnects a hangup signal is sent to the controlling process
+* sometimes a process might want to talk directly to the controlling terminal:
+  * it can do so by opening the `/dev/tty` file, which is a kernel synonym for the controlling terminal
+  * this is useful when the stardard input is already being used or with the `getpass` function
+
+## tcgetpgrp, tcsetpgrp and tcgetsid functions
+
+* these methods tell the kernel which is the foreground process group, so that
+  * the terminal device driver knows where to send the terminal input and the terminal generated signals
+* these functions are normally called by job-control shells
+
+## Job Control
+
+* job control allows us to
+  * start multiple processes from a single terminal
+  * control which process goes to foreground and which to background
+* job control requires
+  * a shell that supports job control
+  * a terminal driver in the kernel that supports job control
+  * the kernel must support some job-control signals
+* when we start a background job, the shell assigns to it a job identifier and prints a job ID
+* when the background job has finished, we have to press enter and see the exit status:
+  * we have to press enter to re-render the prompt, since the shell doesn't print the status of background jobs at any time
+  * if it did, it could print stuff while we are typing
+* we can bring a foreground process to background with the suspend key (Control-Z):
+  * the terminal driver sends SIGTSTP to all processes in the foreground group
+* the terminal driver looks for three special characters:
+  * interrupt character (DELETE or Control-c) that generates SIGINT
+  * quit character (Control-backslash) that generates SIGQUIT
+  * suspend character (Control-z) that generates SIGTSTP
+* only the foreground process group receives input from the terminal
+* when a background process wants to read from the terminal, the terminal driver sends it a special signal (SIGTTIN)
+  * the background process generally stops and we are notified by the shell
