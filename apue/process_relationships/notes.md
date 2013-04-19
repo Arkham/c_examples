@@ -188,3 +188,9 @@
     ```
 
     * ps and cat still belong to the sam PGRP, but are in background
+
+## Orphaned process groups
+
+* a process forks and terminates; what happens if the child is stopped?
+* the orphan child becomes part of a orphaned process group
+  * every process in this group is sent SIGHUP and SIGCONT
