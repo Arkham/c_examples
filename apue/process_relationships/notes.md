@@ -128,3 +128,63 @@
 * only the foreground process group receives input from the terminal
 * when a background process wants to read from the terminal, the terminal driver sends it a special signal (SIGTTIN)
   * the background process generally stops and we are notified by the shell
+
+## Shell execution of programs
+
+* in a shell which doesn't support job control
+  * background jobs are not put in their own process groups
+  * the controlling terminal isn't taken away from the background job
+  * when executing multiple processes from a pipe
+    * the last program is the direct child of the shell
+    * the other programs are children of the last program
+  * if we try to put into background a process which might want to read from stdin
+    * unknown things may happen, two processes are trying to read from the same device
+* in a shell which supports job control
+  * launching ps from bash
+
+    ```bash
+    arkham@code ~ $ ps -o pid,ppid,pgrp,session,tpgid,comm
+      PID  PPID  PGRP  SESS TPGID COMMAND
+    14884 14883 14884 14884 14938 bash
+    14938 14884 14938 14884 14938 ps
+    ```
+
+    * the shell puts the new process in a new process group (with PGRP ID equal to PID)
+    * this new process is the foreground process group, since its PGRP ID is equal to TPGID
+    * both bash and ps belong to the same session
+  * if we put ps into the background
+
+    ```bash
+    arkham@code ~ $ ps -o pid,ppid,pgrp,session,tpgid,comm &
+    [1] 15421
+      PID  PPID  PGRP  SESS TPGID COMMAND
+    14884 14883 14884 14884 14884 bash
+    15421 14884 15421 14884 14884 ps
+    ```
+
+    * ps is still placed in a new process group, but the PGRP ID is no longer the foreground PGRP
+    * ps in background, while bash is in foreground
+  * if we use a pipe
+
+    ```bash
+    arkham@code ~ $ ps -o pid,ppid,pgrp,session,tpgid,comm | cat
+      PID  PPID  PGRP  SESS TPGID COMMAND
+    14884 14883 14884 14884 15817 bash
+    15817 14884 15817 14884 15817 ps
+    15818 14884 15817 14884 15817 cat
+    ```
+
+    * ps and cat belong to the same PGRP, which is the foreground PGRP
+    * both programs are spawned by bash
+  * if we use a pipe in the background
+
+    ```bash
+    arkham@code ~ $ ps -o pid,ppid,pgrp,session,tpgid,comm | cat &
+    [1] 15863
+      PID  PPID  PGRP  SESS TPGID COMMAND
+    14884 14883 14884 14884 14884 bash
+    15862 14884 15862 14884 14884 ps
+    15863 14884 15862 14884 14884 cat
+    ```
+
+    * ps and cat still belong to the sam PGRP, but are in background
