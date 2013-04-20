@@ -226,3 +226,11 @@
 * `int sigsuspend(const sigset_t *set)` resets the signal mask and puts the process to sleep in a single atomic operation
 * it can be used also to wait for a signal handler to set a global variable
 * the sigsuspend function is useful when we want to sleep while waiting for a signal to occur
+
+## abort function
+
+* `void abort(void)` sends SIGABRT to the caller
+* processes which catch this signal shouldn't return to the caller
+  * they must use some form of exit
+  * this chance is given to the process to perform some cleanup
+* we can find in `abort.c` an implementation as specified by POSIX
