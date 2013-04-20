@@ -73,3 +73,55 @@
   * `#define SIG_ERR    (void (*) ()) -1`
   * `#define SIG_DFL    (void (*) ())  0`
   * `#define SIG_IGN    (void (*) ())  1`
+
+### Program startup
+
+* when a program is executed, the status of all signals is either default or ignore
+* when an exec is performed, all caught signals are resetted to their default behaviour (functions addresses would be meaningless after the exec is done)
+* if we would want to catch SIGINT only if it wasn't ignored
+
+  ```c
+  static void sig_int(int);
+
+  if (signal(SIGINT, SIG_IGN) != SIG_IGN)
+    signal(SIGINT, sig_int);
+  ```
+* as we can see, a limitation of the signal command is that it can't read the signal behaviour without changing it
+* across a fork, since the child has an exact memory copy of the parent, signal handlers are inherited
+
+## Unreliable signals
+
+* originally the signal handling was very unreliable
+* a signal could only be caught once, then the handler ought to be re-established
+  * but this led problems with timing (classic 'works correctly 99.99% of the time' problems)
+
+## Interrupted system calls
+
+* system calls are divided in: "slow" system calls and all the others. The slow ones may involve
+  * reads that can block the caller forever (pipes, terminals, network devices)
+  * writes that can block the caller forever
+  * `pause` function
+  * some ioctl operations
+  * some IPC functions
+* disk I/O is not a slow system call since the disk driver queues the request and immediately unblocks the caller
+* to prevent from manually restarting operations 4.2BSD made some system calls to be restarted automatically:
+  * `ioctl, read, readv, write, writev, wait, waitpid`
+    * the first five are interrupted by a signal only if they are operating on a slow device (i.e. a terminal)
+    * the last two are always interrupted by a signal
+
+## Reentrant functions
+
+* when a process receives a signal which is being handled
+  * the normal order of execution is interrupted and the handler code is executed
+  * if the handler returns with exit or longjmp, the normal sequence of operations is resumed
+* the problem is that in the handler function we don't know what the original function was doing
+  * it could have been in the middle of a malloc
+  * can the signal handler call malloc?
+* some re-entrant functions
+  * `abort, alarm, chdir, chmod, chown, creat, dup, execve, _exit, fork, getpid, getppid, kill, mkdir, open, sleep, stat, time, umask, wait, waitpid`
+* not re-entrant functions
+  * functions which use static data structures
+  * functions which use malloc or free
+  * most of standard I/O since it uses global data structures in a not re-entrant way
+* even when using re-entrant functions, note that there is only one errno per thread:
+  * the signal handler should save errno before calling those functions and restore them afterwards
