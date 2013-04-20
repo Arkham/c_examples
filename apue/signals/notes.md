@@ -97,7 +97,7 @@
 
 ## Interrupted system calls
 
-* system calls are divided in: "slow" system calls and all the others. The slow ones may involve
+* system calls were divided in: "slow" system calls and all the others. The slow ones may involve
   * reads that can block the caller forever (pipes, terminals, network devices)
   * writes that can block the caller forever
   * `pause` function
@@ -125,3 +125,45 @@
   * most of standard I/O since it uses global data structures in a not re-entrant way
 * even when using re-entrant functions, note that there is only one errno per thread:
   * the signal handler should save errno before calling those functions and restore them afterwards
+
+## Reliable signal terminology
+
+* life of a signal
+  * a signal is _generated_ for a process when a certain event happens
+  * a signal is _delivered_ to a process when the action for a signal is taken
+    * in the period between the generation and the delivery, the signal is _pending_
+  * a process can _block_ the delivery of a signal
+    * the signal remains pending until the process unblocks it or decides to ignore it
+    * each process has a signal mask which defines the set of signals currently blocked
+
+## kill and raise functions
+
+* `int kill(pid_t pid, int signo)` sends a signal to a process or a group of processes
+* `int raise(int signo)` allows a process to send a signal to itself
+* `raise(signo) == kill(getpid(), signo)`
+* there are four different types of pid that can be used with kill:
+  * pid > 0, signal is sent to process with PID pid
+  * pid == 0, signal is sent to all processes where PGRP ID is equal to the sender PGRP ID
+    * this happens only if the process has permissions to send signals to those processes (superuser or if real/effective user ID of sender is equal to the receiver's ones)
+    * a group of processes (like init) are not affected by this
+  * pid < 0, signal is sent to all processes with PGRP ID equal to pid
+* if signo is 0, we have the `null signal`
+  * normal error checking is performed, but no signal is sent
+  * this can be used to see if a certain process exists
+    * kill returns -1 if it can't find a process and sets errno to ESRCH
+    * UNIX recycles IDs after some time, so it's not a sure way to find if a process exists
+    * moreover, this test for existence is not atomic, so it is of limited value
+
+## alarm and pause functions
+
+* `unsigned int alarm(unsigned int seconds)` allows us to set a timer that will expire in `seconds` seconds generating SIGALRM
+  * if we don't ignore or catch this signal, the default action is to terminate the process
+* there can only be one alarm for process
+  * if we call alarm and the previous timer is not expired yet, it sets a new timer and returns with the number of seconds left
+  * if we call alarm with 0 seconds, the previous alarm is canceled, still returning the number of seconds left
+* `int pause(void)` suspends the calling process until a signal is caught
+* using alarm and pause we can build a simple version of the `sleep` program
+  * in `sleep1.c` there are a few problems though
+    * if a signal handler was set to catch SIGALRM, it is lost
+    * if an alarm timer was already going on, it is lost
+    * there is a race condition between the call to alarm and the call to pause; in busy systems we could wait forever for the signal
