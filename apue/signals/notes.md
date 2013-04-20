@@ -234,3 +234,15 @@
   * they must use some form of exit
   * this chance is given to the process to perform some cleanup
 * we can find in `abort.c` an implementation as specified by POSIX
+
+## system function
+
+* POSIX requires that `system` ignores SIGINT and SIGQUIT and blocks SIGCHLD
+  * SIGCHLD should be blocked because
+    * when the child created by system terminates
+    * the caller of system would think that one of its own children had terminated
+    * and would wait for the value of the process
+    * thus preventing system from returning its child termination status
+  * SIGINT and SIGQUIT should be ignore because
+    * the terminal sends these signals to all processes in the foreground group
+    * they should therefore ignore those signals and let only the child receive them
