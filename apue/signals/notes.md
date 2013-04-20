@@ -57,3 +57,19 @@
 * `SIGTTOU`: this signals that a background process is writing to the controlling terminal; this can be allowed normally
 * `SIGUSR1, SIGUSR2`: user defined signals
 * `SIGWINCH`: this signal is sent when the kernel detects a change of size of a terminal or pseudo-terminal
+
+## signal function
+
+* `void (*signal (int signo, void (*func) (int))) (int)`
+* the signo argument is simply the name of the signal
+* the value of func may be
+  * the constant `SIG_IGN`, to ignore the signal
+  * the constact `SIG_DFL`, to reset the default behaviour associated to the signal
+  * the address of a function to be called when the signal occurs (signal handler or signal-catching function)
+* the signature of the signal function could be made much more simpler with
+  * `typedef void Sigfunc(int)`
+  * `Sigfunc *signal(int signo, Sigfunc *func)`
+* generally the constants are defined as
+  * `#define SIG_ERR    (void (*) ()) -1`
+  * `#define SIG_DFL    (void (*) ())  0`
+  * `#define SIG_IGN    (void (*) ())  1`
