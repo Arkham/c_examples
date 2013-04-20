@@ -167,3 +167,5 @@
     * if a signal handler was set to catch SIGALRM, it is lost
     * if an alarm timer was already going on, it is lost
     * there is a race condition between the call to alarm and the call to pause; in busy systems we could wait forever for the signal
+  * in `sleep2.c` a problem may arise if we interrupt the execution of another signal handler
+    * the other signal handler is interrupted and will never terminate
