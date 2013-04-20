@@ -169,3 +169,60 @@
     * there is a race condition between the call to alarm and the call to pause; in busy systems we could wait forever for the signal
   * in `sleep2.c` a problem may arise if we interrupt the execution of another signal handler
     * the other signal handler is interrupted and will never terminate
+
+## Signal sets
+
+* to represent a signal mask:
+  * since there are generally more signals than bits in an integer, we have to use another data type
+  * POSIX defines `sigset_t` and 5 functions to manipulate this set
+    * `int sigemptyset(sigset_t *set)`
+    * `int sigfillset(sigset_t *set)`
+    * `int sigaddset(sigset_t *set, int signo)`
+    * `int sigdelset(sigset_t *set, int signo)`
+    * `int sigismember(const sigset_t *set, int signo)`
+
+## sigprocmask function
+
+* `int sigprocmask(int how, const sigset_t *restrict set, sigset_t *restrict oset)`
+* how may be: `SIG_BLOCK, SIG_UNBLOCK and SIG_SETMASK`
+
+## sigpending function
+
+* `int sigpending(sigset_t *set)` returns the set of signals that are blocked from delivery
+* in general additional occurences of the same signal are not queued
+
+## sigaction function
+
+* the sigaction function let us examine or modify the action associated to a particular signal
+* this function supersedes the signal function
+* `int sigaction(int signo, const struct sigaction *restrict act, struct sigaction *restrict oact)`
+  * signo is the signal we are considering
+  * if act is not NULL, it is the action we're modifying
+  * if oact is not NULL, it is where the previous action is saved
+  * example of struct
+
+    ```c
+    struct sigaction {
+      void (*sa_handler) (int); /* signal handler */
+      sigset_t sa_mask;         /* signals to block */
+      int      sa_flags;        /* signal options */
+
+      /* alternate handler */
+      void (*sa_sigaction) (int, siginfo_t *, void *)
+    }
+    ```
+* once we install a signal handler, that action remains installed until we explicitly change it with sigaction
+
+## sigsetjmp and siglongjmp functions
+
+* these functions should be used when branching from a signal handler
+  * they save the current signal mask and restore is accordingly
+
+## sigsuspend function
+
+* we can use sigprocmask blocking behaviour to protect critical regions of code from signal interrupts
+  * unfortunately this implementation wouldn't be atomic, since:
+    * after we reset the mask, a queued signal would be received before being able to call pause
+* `int sigsuspend(const sigset_t *set)` resets the signal mask and puts the process to sleep in a single atomic operation
+* it can be used also to wait for a signal handler to set a global variable
+* the sigsuspend function is useful when we want to sleep while waiting for a signal to occur
