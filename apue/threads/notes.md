@@ -40,6 +40,7 @@
   * to make them portable, they can't be treated as integers
 * `int pthread_equal(pthread_t tid1, pthread_t tid2)` tells if two threads are equal
 * `pthread_t pthread_self(void)` returns the thread own ID
+* there is no portable way to print a thread ID
 * these functions can be used by threads to identify data structures associated to their own IDs:
   * for example a single master and multiple slaves configuration, where
     * the master assign jobs to the slaves
@@ -52,4 +53,11 @@ int pthread_t pthread_create(pthread_t *restrict tidp,
                              const pthread_attr_t *restrict attr,
                              void *(*start_rtn)(void *), void *restrict arg)
 ```
-
+* the memory location pointed by `tidp` is set to the new thread ID
+* the `attr` argument can be used to customize thread attributes (or NULL to go with the defaults)
+* the newly created thread starts running at the address of the `start_rtn` function, which starts using `arg` as argument
+  * if we need to pass more data, we use store them in a structure and pass the address as `arg`
+* as with fork, when the new thread is created we have no guarantee on which thread runs first, the newly created one or the calling one
+  * the new thread inherits the process address space, and the calling thread floating-point env and signal mask
+  * the set of pending signals is cleared though
+* pthread functions return an error when they fail (they do not use `errno`)
