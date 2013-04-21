@@ -96,3 +96,18 @@ int pthread_t pthread_create(pthread_t *restrict tidp,
     * or responds to a cancellation request
     * or calls `pthread_cleanup_pop` with a non-zero argument
   * `void pthread_cleanup_pop(int execute)`
+  * in the `pthread_cleanup.c` example
+    * we can see that only the handlers for the second thread are called
+      * the first thread cleanup handlers are not called since it returns from its start routine
+    * note also that the cleanup handlers are called in reverse order
+* we can see a lot of similarities between process and thread control
+  * `fork` -> `pthread_create`
+  * `exit` -> `pthread_exit`
+  * `waitpid` -> `pthread_join`
+  * `atexit` -> `pthread_cleanup_push`
+  * `getpid` -> `pthread_self`
+  * `abort` -> `pthread_cancel`
+* a thread termination status is retained until `pthread_join` is called for that thread
+  * a thread underlying storage can be immediately reclaimed if it is on detached status
+  * but if it is already detached, `pthread_join` can't be used to wait for its exit status, and generally the function call fails
+  * `int pthread_detach(pthread_t tid)` can be used to detach a thread
