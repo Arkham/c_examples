@@ -267,3 +267,11 @@
 * except for SIGCHLD, usually programs don't interact with these signals
   * vi has to catch suspend and continue signals to save its internal data and restore it later
   * we can see an example in `sigtstp.c`
+
+## Additional features
+
+* signals are sometimes associated to numbers with a `extern char *syg_syslist[]` array
+* `void psignal(int signo, const char *msg)` print the name of the signal, followed by a short description
+  * similar to perror
+* `char *strsignal(int signo)` returns the string that describes the signal
+  * similar to strerror
