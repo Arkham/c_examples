@@ -138,9 +138,15 @@ int pthread_t pthread_create(pthread_t *restrict tidp,
     * when a mutex is locked, all threads that try to access the shared resource will be blocked
   * *unlock*, release when we are done
     * when the mutex is unlocked, all blocked threads will be made runnable and the first one to run will be able to set the lock
-* a mutex is represented by a `pthread_mutex_t` data type
-  * before using it we must call
-    * `PTHREAD_MUTEX_INITIALIZER` for statically allocated mutexes
-    * `int pthread_mutex_init(pthread_mutex_t *restrict mutex, const pthread_mutexattr_t *restrict attr)` for dynamically allocated ones
-  * if we have allocated a mutex dynamically, we must call this before freeing the memory:
-    * `int pthread_mutex_destroy(pthread_mutex_t *mutex)`
+* a mutex is represented by a `pthread_mutex_t` data type; before using it we must call
+  * `PTHREAD_MUTEX_INITIALIZER` for statically allocated mutexes
+  * `int pthread_mutex_init(pthread_mutex_t *restrict mutex, const pthread_mutexattr_t *restrict attr)` for dynamically allocated ones
+    * if we want to use the default attributes, we can set `attr` as NULL
+* if we have allocated a mutex dynamically, we must call this before freeing the memory:
+  * `int pthread_mutex_destroy(pthread_mutex_t *mutex)`
+* the following functions can be used to interact with a mutex
+  * `int pthread_mutex_lock(pthread_mutex_t *mutex)`
+  * `int pthread_mutex_trylock(pthread_mutex_t *mutex)`, which can be used if a thread doesn't want to block
+    * if the mutex is unlocked, lock is acquired and 0 returned
+    * if the lock can't be acquired, EBUSY is returned
+  * `int pthread_mutex_unlock(pthread_mutex_t *mutex)`
