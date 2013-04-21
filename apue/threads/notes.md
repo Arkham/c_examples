@@ -185,3 +185,32 @@ int pthread_t pthread_create(pthread_t *restrict tidp,
     * if your locking is too fine-grained, you suffer from excessive locking overhead performance and complex logic
     * if your locking is too coarse, you have many threads blocking on the same locks
 
+### Reader-writer locks
+
+* reader-writer locks are similar to mutexes, except they allow more parallelism
+  * in a mutex, the state is either locked or unlocked
+  * in a reader-writer lock, there are three possible states
+    * unlocked
+    * locked in read mode
+    * locked in write mode
+* when a rw-lock is write-locked
+  * all threads trying to lock it are blocked
+* when a rw-lock is read-locked
+  * if a thread tries to read-lock, it is given access
+  * if a thread tries to write-lock, it is blocked
+  * generally, it also blocks additional readers if there is writer blocked, in order to prevent _starvation_
+* rw-locks are particularly useful with data structures which are read more often then written
+* they are also called shared-exclusive locks
+  * when locked in read-mode, shared lock
+  * when locked in write-mode, exclusive lock
+* we can use the following functions to use a rw-lock
+  * `int pthread_rwlock_init(pthread_rwlock_t *restrict rwlock, const pthread_rwlockattr_t *restrict attr)`
+  * `int pthread_rwlock_destroy(pthread_rwlock_t *rwlock)`
+  * `int pthread_rwlock_rdlock(pthread_rwlock_t *rwlock)`
+  * `int pthread_rwlock_wrlock(pthread_rwlock_t *rwlock)`
+  * `int pthread_rwlock_unlock(pthread_rwlock_t *rwlock)`
+* there are also non-blocking versions of the lock functions, which return 0 on successful lock and EBUSY otherwise
+  * `int pthread_rwlock_tryrdlock(pthread_rwlock_t *rwlock)`
+  * `int pthread_rwlock_trywrlock(pthread_rwlock_t *rwlock)`
+
+###
