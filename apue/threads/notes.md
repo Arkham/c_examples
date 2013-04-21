@@ -111,3 +111,36 @@ int pthread_t pthread_create(pthread_t *restrict tidp,
   * a thread underlying storage can be immediately reclaimed if it is on detached status
   * but if it is already detached, `pthread_join` can't be used to wait for its exit status, and generally the function call fails
   * `int pthread_detach(pthread_t tid)` can be used to detach a thread
+
+## Thread syncronization
+
+* since multiple threads share the same memory, some kind of synchronization is necessary
+  * if each thread only modifies its own data, no problems arise
+  * in the same way, if all threads access data read-only, there is no consistency problem
+  * when a thread modifies data that other threads modify or read, that's when we need to ensure that they don't use an invalid value
+* this can be troublesome on architectures where the modification takes more than one cycle
+  * a thread start modifying some data
+  * another thread reads data while the modification is in progress
+  * it reads an inconsistent value
+* therefore, the threads need to use a lock to ensure that only one thread can access to the variable at a time
+* another case when the use of a lock is necessary is when two threads try to modify the same variable
+  * in order to increment a value, we must
+    * read the the memory location into a register
+    * increment the value in the register
+    * write the new value back to the memory location
+  * the inconsistencies may also be caused if we read a value and then make decisions depending on the value that we've read
+
+### Mutexes
+
+* we can protect our data and ensure access by only one thread using the pthreads mutual-exclusion interface
+* a mutex is a lock that we
+  * *lock*, set before accessing a shared resource
+    * when a mutex is locked, all threads that try to access the shared resource will be blocked
+  * *unlock*, release when we are done
+    * when the mutex is unlocked, all blocked threads will be made runnable and the first one to run will be able to set the lock
+* a mutex is represented by a `pthread_mutex_t` data type
+  * before using it we must call
+    * `PTHREAD_MUTEX_INITIALIZER` for statically allocated mutexes
+    * `int pthread_mutex_init(pthread_mutex_t *restrict mutex, const pthread_mutexattr_t *restrict attr)` for dynamically allocated ones
+  * if we have allocated a mutex dynamically, we must call this before freeing the memory:
+    * `int pthread_mutex_destroy(pthread_mutex_t *mutex)`
