@@ -2,7 +2,7 @@
 #include <pthread.h>
 
 #define NHASH 29
-#define HASH(fp) (((unsigned long)fp) %NHASH)
+#define HASH(fp) (((unsigned long)fp) % NHASH)
 
 struct foo {
   int f_count;

@@ -161,3 +161,27 @@ int pthread_t pthread_create(pthread_t *restrict tidp,
   * we can use `pthread_mutex_trylock` to do this:
     * if the lock is unlocked, lock it and keep on
     * if is locked, then release the locks we've already taken and try again later
+* if we look at the example in `pthread_double.c`
+  * in the `foo_alloc` function, in order to add a new object we need to
+    * lock tha hash lock
+    * add the new structure to the hash bucket
+    * lock the object we are initializing
+    * release the hash lock
+    * keep on initializing
+    * when we are done, unlock the object lock
+  * in the `foo_find` function, to find a certain object
+    * we lock the hash lock
+    * we search for the desired object
+    * we get the lock, increase its count and release the lock
+    * then we release the hash lock
+  * in the `foo_rele` function, we lock the structure lock
+    * if this is the last reference, we need to unlock the structure mutex, take the hash lock, then lock the structure lock
+    * if the condition is still satisfied, we can remove the structure
+    * otherwise, just decrement the count and go on
+* the previous example was too convoluted, we can see an improved design in `pthread_double_rev.c`
+  * the locking logic is much simpler
+  * we use the global lock to control access of structure's `f_count`
+  * multithreaded designs bring this kind of tradeoffs
+    * if your locking is too fine-grained, you suffer from excessive locking overhead performance and complex logic
+    * if your locking is too coarse, you have many threads blocking on the same locks
+
