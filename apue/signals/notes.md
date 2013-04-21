@@ -246,3 +246,24 @@
   * SIGINT and SIGQUIT should be ignore because
     * the terminal sends these signals to all processes in the foreground group
     * they should therefore ignore those signals and let only the child receive them
+
+## sleep function
+
+* `unsigned int sleep(unsigned int seconds)` makes the calling process suspended until
+  * the timer specified by seconds is elapsed, and it returns 0
+  * a signal is caught by the process and the signal handler returns, and it returns the amount of seconds left
+* we can see a POSIX compliant implementation in `sleep.c`
+
+## Job-control signals
+
+* there are many job-control signals
+  * `SIGCHLD` child process has stopped or terminated
+  * `SIGCONT` continue process, if stopped
+  * `SIGSTOP` stop signal (can't be caught or ignored)
+  * `SIGTSTP` interactive stop signal
+  * `SIGTTIN` read from controlling terminal by a member of a background pr group
+  * `SIGTTOU` write to controlling terminal by a member of a background pr group
+* generally the job-control shell takes care of most of the handling
+* except for SIGCHLD, usually programs don't interact with these signals
+  * vi has to catch suspend and continue signals to save its internal data and restore it later
+  * we can see an example in `sigtstp.c`
