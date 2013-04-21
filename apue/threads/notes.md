@@ -61,3 +61,7 @@ int pthread_t pthread_create(pthread_t *restrict tidp,
   * the new thread inherits the process address space, and the calling thread floating-point env and signal mask
   * the set of pending signals is cleared though
 * pthread functions return an error when they fail (they do not use `errno`)
+* in the example `printid.c`
+  * we have to sleep from the main thread to deal with concurrency issues
+  * the new thread has to get its thread ID by calling `pthread_self`
+    * it can't use the global variable `ntid` since it can't be sure that the main thread has returned from the `pthread_create`
