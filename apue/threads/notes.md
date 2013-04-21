@@ -65,3 +65,34 @@ int pthread_t pthread_create(pthread_t *restrict tidp,
   * we have to sleep from the main thread to deal with concurrency issues
   * the new thread has to get its thread ID by calling `pthread_self`
     * it can't use the global variable `ntid` since it can't be sure that the main thread has returned from the `pthread_create`
+
+## Thread termination
+
+* if any thread calls `exit, _exit or _Exit` the whole process terminates
+* when a signal which default action is terminate is sent to a thread, the whole process will terminate
+* a single thread can exit in three ways without terminating the whole process:
+  * the thread can simply return from the start routine
+  * the thread may be canceled by another thread in the same process
+  * the thread can call `pthread_exit`
+* `void pthread_exit(void *rval_ptr)`
+  * the typeless `rval_ptr` pointer is available for other threads in the process by calling the `pthread_join` function
+* `int pthread_join(pthread_t thread, void **rval_ptr)` will make the calling thread block until the thread with ID `thread` exits
+  * if the other thread returned from its start routine, we will find the return value in `rval_ptr`
+  * if it was canceled, `rval_ptr` will point to `PTHREAD_CANCELED`
+  * by calling this function, we will place the other thread in detached state so that its termination status can be recovered
+    * if the other thread was already in detached state, `pthread_join` can fail
+  * we can also set `rval_ptr` to NULL if we don't care about the termination status of the thread
+* the pointer used by `pthread_create` and `pthread_exit` can be used to store more than a single value
+  * we have to be careful that the memory has to be valid after the caller has completed
+  * for example, if we allocated dynamically a structure and pass it to `pthread_exit`, the stack might have been modified by the time the caller of `pthread_join` uses it
+  * see example `pthread_stack.c`
+* `int pthread_cancel(pthread_t tid)` can be used by a thread to request the cancellation of another thread of the same process
+  * the other thread behaves as if it called `pthread_exit`
+  * however, the other thread can ignore or control how it is canceled
+  * this function does not wait for the termination of the other thread, it merely makes the request
+* similarly to the atexit handlers, there are thread cleanup handlers:
+  * `void pthread_cleanup_push(void (*rtn)(void *), void *arg)`, the rtn is the cleanup function to be called with the argument arg
+    * this handler is run when the thread calls `pthread_exit`
+    * or responds to a cancellation request
+    * or calls `pthread_cleanup_pop` with a non-zero argument
+  * `void pthread_cleanup_pop(int execute)`
