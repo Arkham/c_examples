@@ -213,4 +213,34 @@ int pthread_t pthread_create(pthread_t *restrict tidp,
   * `int pthread_rwlock_tryrdlock(pthread_rwlock_t *rwlock)`
   * `int pthread_rwlock_trywrlock(pthread_rwlock_t *rwlock)`
 
-###
+### Condition variables
+
+* condition variables are another locking mechanism, they provide a way for threads to rendezvous
+  * when used with mutexes, condition variables allow threads to wait in a race-free way for arbitrary conditions
+* the condition itself is protected by a mutex
+  * a thread must lock the mute before being able to change the condition state
+  * other threads will notice the change only when they will be able to access the mutex
+* like mutexes, there is a `PTHREAD_COND_INITIALIZER` for static initialization or
+  * `int pthread_cond_init(pthread_cond_t *restrict cond, pthread_condattr_t *restrict attr)`
+  * `int pthread_cond_destroy(pthread_cond_t *cond)`
+* we can use these functions to wait for the condition variable:
+  * `int pthread_cond_wait(pthread_cond_t *restrict cond, pthread_mutex_t *restrict mutex)`
+  * `int pthread_cond_timedwait(pthread_cond_t *restrict cond, pthread_mutex_t *restrict mutex, const struct timespec *restrict timeout)`
+  * these functions use the passed `mutex` to protect the condition, the caller must pass it locked to the function, which then
+    * places the calling thread on the list of threads waiting for condition
+    * unlocks the mutex
+    * in this way, it is closed the window of time between the check of the condition and the moment the thread goes to sleep
+    * when `pthread_cond_wait` retuns, the mutex is locked again
+  * the timedwait version supports also a timeout argument, which specifies how long we are allowed to wait
+    * we are supposed to pass an absolute timespec structure to this function
+    * if we want to specify 3 minutes, we have to use `gettimeofday`, sum 3 minutes and convert it to a timespec structure
+* we can use these functions to signal the condition variable change
+  * `int pthread_cond_signal(pthread_cond_t *cond)` will wake a single thread
+  * `int pthread_cond_broadcast(pthread_cond_t *cond)` will wake all threads
+* if we look at the example in `pthread_cond.c`
+  * the condition is the state of the work queue
+  * we protect the condition with a mutex and evaluate is a while loop
+  * when we put a message in the queue we need to hold the mutex
+  * when we signal the waiting threads, we don't need to hold the mutex
+    * if a thread wakes up and finds no jobs, it can go back to sleep again
+
