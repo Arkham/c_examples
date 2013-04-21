@@ -150,3 +150,14 @@ int pthread_t pthread_create(pthread_t *restrict tidp,
     * if the mutex is unlocked, lock is acquired and 0 returned
     * if the lock can't be acquired, EBUSY is returned
   * `int pthread_mutex_unlock(pthread_mutex_t *mutex)`
+
+### Deadlock avoidance
+
+* a thred will deadlock itself if it tries to lock the same lock twice
+* a deadlock could occur if we have two locks and two threads are locking them in a different order
+* deadlocks can generally be avoided by enforcing the order with which the locks are taken
+* sometimes, software architecture may render difficult to enforce the same ordering of lock taking:
+  * it may be useful to release the locks we've already taken and try again at some later time
+  * we can use `pthread_mutex_trylock` to do this:
+    * if the lock is unlocked, lock it and keep on
+    * if is locked, then release the locks we've already taken and try again later
