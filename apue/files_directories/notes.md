@@ -7,6 +7,8 @@
 * `fstat(filedes, *buf)`
 * `lstat(pathname, *buf` supports symlinks
 * example structure
+
+    ```c
     struct stat {
         mode_t     st_mode;     / * file type and mode */
         ino_t      st_ino;      / * inode number */
@@ -22,6 +24,7 @@
         blksize_t  st_blksize;  / * best I/0 blocksize */
         blkcnt_t   st_blocks;   / * number of disk blocks */
     }
+    ```
 
 ## File types
 
@@ -181,10 +184,13 @@
 * `opendir(pathname)`
 * `readdir(dp)`
 * dirent struct:
-    struct dirent {
-        ino_t d_ino; /* inode number */
-        char d_name[NAME_MAX + 1]; /* null terminated filenames */
-    }
+
+  ```c
+  struct dirent {
+      ino_t d_ino; /* inode number */
+      char d_name[NAME_MAX + 1]; /* null terminated filenames */
+  }
+  ```
 
 ## chdir, fchdir and getcwd functions
 
