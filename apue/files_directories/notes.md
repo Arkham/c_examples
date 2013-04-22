@@ -10,19 +10,19 @@
 
     ```c
     struct stat {
-        mode_t     st_mode;     / * file type and mode */
-        ino_t      st_ino;      / * inode number */
-        dev_t      st_dev;      / * device number (file system) */
-        dev_t      st_rdev;     / * device number (special) */
-        nlink_t    st_nlink;    / * number of links */
-        uid_t      st_uid;      / * user ID Of owner */
-        gid_t      st_gid;      / * group ID Of owner */
-        off_t      st_size;     / * file size in bytes, for regular files */
-        time_t     st_atime;    / * last access-time */
-        time_t     st_mtime;    / * last modification-time */
-        time_t     st_ctime;    / * last change-time of file status */
-        blksize_t  st_blksize;  / * best I/0 blocksize */
-        blkcnt_t   st_blocks;   / * number of disk blocks */
+        mode_t     st_mode;     /* file type and mode */
+        ino_t      st_ino;      /* inode number */
+        dev_t      st_dev;      /* device number (file system) */
+        dev_t      st_rdev;     /* device number (special) */
+        nlink_t    st_nlink;    /* number of links */
+        uid_t      st_uid;      /* user ID Of owner */
+        gid_t      st_gid;      /* group ID Of owner */
+        off_t      st_size;     /* file size in bytes, for regular files */
+        time_t     st_atime;    /* last access-time */
+        time_t     st_mtime;    /* last modification-time */
+        time_t     st_ctime;    /* last change-time of file status */
+        blksize_t  st_blksize;  /* best I/0 blocksize */
+        blkcnt_t   st_blocks;   /* number of disk blocks */
     }
     ```
 
